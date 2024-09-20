@@ -1,0 +1,63 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "drf-rules"
+dynamic = ["version"]
+description = 'Rules Permissions with Django DRF'
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "BSD-3-Clause" }
+keywords = ["django", "drf", "rules", "permissions"]
+authors = [{ name = "Luis Saavedra", email = "luis94855510@gmail.com" }]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Web Environment",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: BSD License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+  "Topic :: Internet :: WWW/HTTP",
+  "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+  "Topic :: Security",
+  "Topic :: Software Development :: Libraries :: Application Frameworks",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = ["djangorestframework>=3.15.2", "rules>=3.5"]
+
+[project.urls]
+Documentation = "https://github.com/lsaavedr/drf-rules#readme"
+Issues = "https://github.com/lsaavedr/drf-rules/issues"
+Source = "https://github.com/lsaavedr/drf-rules"
+
+[tool.hatch.version]
+path = "src/drf_rules/__about__.py"
+
+[tool.hatch.envs.types]
+extra-dependencies = ["mypy>=1.0.0"]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/drf_rules tests}"
+
+[tool.coverage.run]
+source_pkgs = ["drf_rules", "tests"]
+branch = true
+parallel = true
+omit = ["src/drf_rules/__about__.py"]
+
+[tool.coverage.paths]
+drf_rules = ["src/drf_rules", "*/drf-rules/src/drf_rules"]
+tests = ["tests", "*/drf-rules/tests"]
+
+[tool.coverage.report]
+exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
+
+[tool.hatch.envs.test]
+dependencies = ["pytest"]
