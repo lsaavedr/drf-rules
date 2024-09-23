@@ -3,12 +3,12 @@
 # SPDX-License-Identifier: BSD-3-Clause
 import logging
 
-from django.contrib.auth.models import Permission
 from django.db.models import QuerySet
 from django.http import HttpRequest
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import BasePermission
 from rules.contrib.models import RulesModel
+from rules.permissions import perm_exists
 
 logger = logging.getLogger("drf-rules")
 
@@ -56,7 +56,7 @@ class AutoRulesPermissions(BasePermission):
         user = request.user
         perm = self._permission(request, view)
 
-        if not Permission.objects.filter(name=perm).exists():
+        if not perm_exists(name=perm):
             logger.warning(
                 f"Permission {perm} not found, please add it to rules_permissions!"
             )
@@ -68,7 +68,7 @@ class AutoRulesPermissions(BasePermission):
         user = request.user
         perm = self._permission(request, view)
 
-        if not Permission.objects.filter(name=perm).exists():
+        if not perm_exists(name=perm):
             logger.warning(
                 f"Permission {perm} not found, please add it to rules_permissions!"
             )
