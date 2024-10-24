@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2024-present Luis Saavedra <luis94855510@gmail.com>
 #
 # SPDX-License-Identifier: BSD-3-Clause
+from typing import List
+
 from django.core.exceptions import ImproperlyConfigured
 from django.urls import URLPattern
 from rest_framework.decorators import action
@@ -16,7 +18,7 @@ from drf_rules.permissions import AutoRulesPermission
 
 
 class AutoPermissionRequiredMixinTests(APITestCase, URLPatternsTestCase):
-    urlpatterns: list[URLPattern] = []
+    urlpatterns: List[URLPattern] = []
 
     @classmethod
     def setUpClass(cls):

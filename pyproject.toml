@@ -50,10 +50,9 @@ check = "mypy --install-types --non-interactive {args:src/drf_rules tests}"
 line-length = 79
 
 [tool.coverage.run]
-source_pkgs = ["drf_rules", "tests"]
+source_pkgs = ["drf_rules"]
 branch = true
-parallel = true
-omit = ["src/drf_rules/__about__.py"]
+omit = ["src/drf_rules/__about__.py", "tests/*"]
 
 [tool.coverage.paths]
 drf_rules = ["src/drf_rules", "*/drf-rules/src/drf_rules"]
