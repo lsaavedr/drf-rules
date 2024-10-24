@@ -46,6 +46,9 @@ extra-dependencies = ["mypy>=1.0.0"]
 [tool.hatch.envs.types.scripts]
 check = "mypy --install-types --non-interactive {args:src/drf_rules tests}"
 
+[tool.black]
+line-length = 79
+
 [tool.coverage.run]
 source_pkgs = ["drf_rules", "tests"]
 branch = true

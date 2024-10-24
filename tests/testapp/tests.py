@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 from django.core.exceptions import ImproperlyConfigured
+from django.urls import URLPattern
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -15,7 +16,7 @@ from drf_rules.permissions import AutoRulesPermission
 
 
 class AutoPermissionRequiredMixinTests(APITestCase, URLPatternsTestCase):
-    urlpatterns = []
+    urlpatterns: list[URLPattern] = []
 
     @classmethod
     def setUpClass(cls):
@@ -51,7 +52,7 @@ class AutoPermissionRequiredMixinTests(APITestCase, URLPatternsTestCase):
         url = reverse("cat-list")
         url_1 = reverse("cat-detail", [1])
 
-        # Create should be allowed due to the create permission set on Cat model
+        # Create should be allowed due to the create permission
         response = self.client.post(
             url,
             {"name": "michi", "age": 3, "gender": "femenino"},
@@ -63,11 +64,11 @@ class AutoPermissionRequiredMixinTests(APITestCase, URLPatternsTestCase):
         response = self.client.get(url, format="json")
         self.assertEqual(response.status_code, 403)
 
-        # Retrieve should be allowed due to the view permission set on Cat model
+        # Retrieve should be allowed due to the view permission
         response = self.client.get(url_1, format="json")
         self.assertEqual(response.status_code, 200)
 
-        # Destroy should be forbidden due to the destroy permission set on Cat model
+        # Destroy should be forbidden due to the destroy permission
         response = self.client.delete(url_1, format="json")
         self.assertEqual(response.status_code, 403)
 

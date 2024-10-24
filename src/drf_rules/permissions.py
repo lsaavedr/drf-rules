@@ -27,20 +27,21 @@ crud_method_names = [
 class AutoRulesPermission(BasePermission):
     """
     This permission class enforces object-level permissions in
-    ``rest_framework.generics.GenericAPIView``, determining the permission type based
-    on the specific Django Rest Framework (DRF) action to be performed.
+    ``rest_framework.generics.GenericAPIView``, determining the permission type
+    based on the specific Django Rest Framework (DRF) action to be performed.
 
-    Similar to ``rules.contrib.views.AutoPermissionRequiredMixin``, this functionality
-    is effective only when model permissions are registered using
-    ``rules.contrib.models.RulesModelMixin`` or ``rules.contrib.models.RulesModel``.
+    Similar to ``rules.contrib.views.AutoPermissionRequiredMixin``, this
+    functionality is effective only when model permissions are registered
+    using ``rules.contrib.models.RulesModelMixin`` or
+    ``rules.contrib.models.RulesModel``.
 
-    ``AutoRulesPermission`` maps Django Rest Framework (DRF) actions to rules without
-    converting or adjusting for naming convention differences between default Django
-    permissions and DRF actions. This means that the mapping does not adhere to Django's
-    default permission names.
+    ``AutoRulesPermission`` maps Django Rest Framework (DRF) actions to rules
+    without converting or adjusting for naming convention differences between
+    default Django permissions and DRF actions. This means that the mapping
+    does not adhere to Django's default permission names.
 
-    For example, for a `rest_framework.viewsets.ViewSet`, the default actions are as
-    follows:
+    For example, for a `rest_framework.viewsets.ViewSet`, the default actions
+    are as follows:
 
     - list
     - create
@@ -49,7 +50,8 @@ class AutoRulesPermission(BasePermission):
     - partial_update
     - destroy
 
-    then a ``Meta`` class of the ``Model`` specifying the permissions might look like this:
+    then a ``Meta`` class of the ``Model`` specifying the permissions might
+    look like this:
 
     ```python
     class Meta:
@@ -61,14 +63,16 @@ class AutoRulesPermission(BasePermission):
         }
     ```
 
-    regardles of the actual names diffier from the ``AutoPermissionViewSetMixin``. But this
-    enables that all actions can be maped to a rule in this form. In this example a simple
-    custom action ``get_from_name`` is added.
+    regardles of the actual names diffier from the
+    ``AutoPermissionViewSetMixin``. But this enables that all actions can be
+    maped to a rule in this form. In this example a simple custom action
+    ``get_from_name`` is added.
     """
 
     def _queryset(self, view: GenericAPIView) -> QuerySet:
         assert (
-            hasattr(view, "get_queryset") or getattr(view, "queryset", None) is not None
+            hasattr(view, "get_queryset")
+            or getattr(view, "queryset", None) is not None
         ), (
             f"Cannot apply {self.__class__.__name__} on a view that does"
             "not set `.queryset` or have a `.get_queryset()` method."
@@ -76,7 +80,9 @@ class AutoRulesPermission(BasePermission):
 
         if hasattr(view, "get_queryset"):
             queryset = view.get_queryset()
-            assert queryset is not None, "{}.get_queryset() returned None".format(
+            assert (
+                queryset is not None
+            ), "{}.get_queryset() returned None".format(
                 view.__class__.__name__
             )
 
@@ -114,7 +120,9 @@ class AutoRulesPermission(BasePermission):
 
         return user.has_perm(perm)
 
-    def has_object_permission(self, request: HttpRequest, view: GenericAPIView, obj):
+    def has_object_permission(
+        self, request: HttpRequest, view: GenericAPIView, obj
+    ):
         user = request.user
         method_name = self._method_name(request, view)
         perm = self._permission(method_name, view)
