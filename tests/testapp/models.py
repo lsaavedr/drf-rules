@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import rules
 from django.db import models
 from rules.contrib.models import RulesModel
+
 from .rules import is_adult_cat
 
 
