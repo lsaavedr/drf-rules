@@ -130,11 +130,15 @@ class AutoRulesPermission(BasePermission):
         if not perm_exists(name=perm):
             logger.warning(error_message.format(perm))
 
-            if method_name not in crud_method_names:
-                raise ImproperlyConfigured(error_message.format(perm))
+            # already evaluated in has_permission
+            # if method_name not in crud_method_names:
+            #     raise ImproperlyConfigured(error_message.format(perm))
+            assert method_name in crud_method_names
 
             perm = self._permission(":default:", view)
-            if not perm_exists(name=perm):
-                raise ImproperlyConfigured(error_message.format(perm))
+            # already evaluated in has_permission
+            # if not perm_exists(name=perm):
+            #     raise ImproperlyConfigured(error_message.format(perm))
+            assert perm_exists(name=perm)
 
         return user.has_perm(perm, obj)
