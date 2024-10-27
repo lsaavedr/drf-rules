@@ -87,7 +87,6 @@ Configuring Django (see `django-rules`_)
 Add ``rules`` to ``INSTALLED_APPS``:
 
 .. code-block:: python
-   :emphasize-lines: 3
 
     INSTALLED_APPS = (
         # ...
@@ -97,7 +96,6 @@ Add ``rules`` to ``INSTALLED_APPS``:
 Add the authentication backend:
 
 .. code-block:: python
-   :emphasize-lines: 2
 
     AUTHENTICATION_BACKENDS = (
         'rules.permissions.ObjectPermissionBackend',
@@ -186,7 +184,6 @@ and/or metaclass for your models. Here are the steps:
   as the metaclass. Here's how you can do it:
 
     .. code-block:: python
-       :emphasize-lines: 4
 
         from django.db.models import Model
         from rules.contrib.models import RulesModelBase, RulesModelMixin
@@ -201,7 +198,6 @@ and/or metaclass for your models. Here are the steps:
   class directly, follow this example:
 
     .. code-block:: python
-       :emphasize-lines: 4, 6-10
 
         import rules
         from rules.contrib.models import RulesModel
@@ -265,7 +261,6 @@ configure the ``permission_classes`` attribute for a view or viewset by using
 the ``ModelViewSet`` class-based views:
 
 .. code-block:: python
-  :emphasize-lines: 4, 10
 
   from rest_framework.decorators import action
   from rest_framework.viewsets import ModelViewSet
@@ -288,7 +283,6 @@ For example, you can do this:
 
 
 .. code-block:: python
-  :emphasize-lines: 4, 6-11
 
   import rules
   from rules.contrib.models import RulesModel
@@ -312,7 +306,6 @@ the ``:default:`` rule applies to all conventional actions that are not
 explicitly defined, you can define it accordingly:
 
 .. code-block:: python
-  :emphasize-lines: 4, 6-10
 
   import rules
   from rules.contrib.models import RulesModel
