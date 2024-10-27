@@ -1,8 +1,9 @@
 from __future__ import absolute_import
 
 import rules
-from django.db import models
 from rules.contrib.models import RulesModel
+
+from django.db import models
 
 from .rules import is_adult_cat
 
@@ -19,6 +20,7 @@ class Cat(RulesModel):
 
     class Meta:
         rules_permissions = {
+            "post": rules.always_true,
             "create": rules.always_true,
             "retrieve": rules.always_true,
             "destroy": rules.is_staff,

@@ -3,13 +3,14 @@
 # SPDX-License-Identifier: BSD-3-Clause
 import logging
 
+from rules.contrib.models import RulesModel
+from rules.permissions import perm_exists
+
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models import QuerySet
 from django.http import HttpRequest
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import BasePermission
-from rules.contrib.models import RulesModel
-from rules.permissions import perm_exists
 
 logger = logging.getLogger("drf-rules")
 error_message = "Permission {} not found, please add it to rules_permissions!"
@@ -70,13 +71,16 @@ class AutoRulesPermission(BasePermission):
     """
 
     def _queryset(self, view: GenericAPIView) -> QuerySet:
-        assert (
-            hasattr(view, "get_queryset")
-            or getattr(view, "queryset", None) is not None
-        ), (
-            f"Cannot apply {self.__class__.__name__} on a view that does"
-            "not set `.queryset` or have a `.get_queryset()` method."
-        )
+        if (
+            not hasattr(view, "get_queryset")
+            and getattr(view, "queryset", None) is None
+        ):
+            message = (
+                f"Cannot apply {self.__class__.__name__} on a view that does"
+                "not set `.queryset` and not have a `.get_queryset()` method."
+            )
+            logger.warning(message)
+            raise ImproperlyConfigured(message)
 
         if hasattr(view, "get_queryset"):
             queryset = view.get_queryset()
