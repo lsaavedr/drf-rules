@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 import logging
+from typing import List
 
 from rules.contrib.models import RulesModel
 from rules.permissions import perm_exists
@@ -12,10 +13,12 @@ from django.http import HttpRequest
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import BasePermission
 
-logger = logging.getLogger("drf-rules")
-error_message = "Permission {} not found, please add it to rules_permissions!"
+logger: logging.Logger = logging.getLogger("drf-rules")
+error_message: str = (
+    "Permission {} not found, please add it to rules_permissions!"
+)
 
-crud_method_names = [
+crud_method_names: List[str] = [
     "list",
     "create",
     "retrieve",
