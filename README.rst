@@ -13,10 +13,13 @@ drf-rules
     :target: https://coveralls.io/github/lsaavedr/drf-rules
     :alt: Coverage Status
 
-``drf-rules`` is a Django Rest Framework library that provides object-level
-permissions based on rules. It allows you to define fine-grained access
-control for your API endpoints, enabling you to specify which users or groups
-can perform certain actions on specific objects.
+``drf-rules`` is a **Django REST Framework** extension built on top of
+`django-rules`_ that provides **object-level permissions** fully aligned
+with DRF actions.
+
+It allows you to **declaratively define** which users or groups can perform
+each action (*create, list, retrieve, update, destroy, etc.*) on your models
+and API endpoints.
 
 ----
 
@@ -26,16 +29,12 @@ can perform certain actions on specific objects.
 Features
 --------
 
-- **KISS Principle**: The library follows the KISS principle, providing a
-  simple and easy-to-understand how it works.
-- **Documented**: The library is well-documented, with clear examples and
-  explanations of how to use its features.
-- **Tested**: The library is thoroughly tested, with a high test coverage to
-  ensure its reliability and correctness.
-- **DRF Integration**: Seamlessly integrates with Django Rest Framework to
-  provide object-level permissions.
-- **Based on django-rules**: Built on top of the `django-rules`_ library,
-  which provides a flexible and extensible rule system.
+- **Simplicity (KISS)**: minimal setup, easy to understand.
+- **Native DRF integration**: rules map directly to DRF actions.
+- **Consistent conventions**: follows DRF’s CRUD action names
+  (``retrieve`` instead of ``view``, ``destroy`` instead of ``delete``).
+- **Well tested and documented**: high test coverage and clear examples.
+- **Powered by django-rules**: inherits its flexibility and extensibility.
 
 
 Table of Contents
@@ -43,24 +42,24 @@ Table of Contents
 
 - `Requirements`_
 - `Installation`_
-- `Configuring Django`_
+- `Django Setup`_
 - `Defining Rules`_
-- `Using Rules with DRF`_
-
-  + `Permissions in models`_
-  + `Permissions in views`_
+- `Using with DRF`_
+  + `Model Permissions`_
+  + `View Permissions`_
+  + `Custom User Integration`_
 - `License`_
 
 
 Requirements
 ------------
 
-``drf-rules`` requires Python 3.8 or newer and Django 3.2 or newer.
+- Python **3.8+**
+- Django **4.2+**
 
-Note: At any given moment in time, `drf-rules` will maintain support for all
-currently supported Django versions, while dropping support for those versions
-that reached end-of-life in minor releases. See the Supported Versions section
-on Django Project website for the current state and timeline.
+Note: `drf-rules` supports all currently maintained Django versions and drops
+end-of-life versions in minor releases. See the Django Project documentation
+for timelines.
 
 
 Installation
@@ -72,157 +71,88 @@ Using pip:
 
     $ pip install drf-rules
 
-Run test with:
+Using uv:
+
+.. code-block:: console
+
+    $ uv add drf-rules
+
+Run tests with:
 
 .. code-block:: console
 
     $ ./runtests.sh
 
 
-.. _`Configuring Django`:
-
-Configuring Django (see `django-rules`_)
-----------------------------------------
+Django Setup
+------------
 
 Add ``rules`` to ``INSTALLED_APPS``:
 
 .. code-block:: python
 
-    INSTALLED_APPS = (
+    INSTALLED_APPS = [
         # ...
-        'rules',
-    )
+        "rules",
+    ]
 
-Add the authentication backend:
+Configure authentication backends:
 
 .. code-block:: python
 
-    AUTHENTICATION_BACKENDS = (
-        'rules.permissions.ObjectPermissionBackend',
-        'django.contrib.auth.backends.ModelBackend',
-    )
+    AUTHENTICATION_BACKENDS = [
+        "rules.permissions.ObjectPermissionBackend",
+        "django.contrib.auth.backends.ModelBackend",
+    ]
 
 
-.. _`Defining Rules`:
+Defining Rules
+--------------
 
-Defining Rules (see `django-rules`_)
-------------------------------------
-
-For a comprehensive guide on using `django-rules`_, please refer to the
-detailed documentation.
-
-We will suppose that you have a ``Book`` model and you want to restrict access
-to it based on the user's group.
-
-First, define the rule in a ``rules.py`` file:
-
+Example with a ``Book`` model:
 
 .. code-block:: python
 
     import rules
 
-    # Define a rule that checks if the user's group is 'librarians'
     @rules.predicate
     def is_librarian(user):
-        return user.groups.filter(name='librarians').exists()
+        return user.groups.filter(name="librarians").exists()
 
-    # Define a rule that checks if the user's group is 'authors'
     @rules.predicate
     def is_author(user):
-        return user.groups.filter(name='authors').exists()
-
-    # Define a rule that checks if the user's group is 'managers'
-    @rules.predicate
-    def is_manager(user):
-        return user.groups.filter(name='managers').exists()
-
-    # Define a rule that checks if the user is the author of the book
-    @rules.predicate
-    def is_book_author(user, book):
-        return book.author == user
+        return user.groups.filter(name="authors").exists()
 
 
-.. _`Using Rules with DRF`:
+Using with DRF
+--------------
 
-Using Rules with DRF (see `django-rules`_)
-------------------------------------------
+Model Permissions
+.................
 
-We will assume that you have already defined all the necessary rules to
-restrict access to your API.
+Define object-level rules in ``Meta.rules_permissions``:
 
-The ``rules`` library is capable of providing object-level permissions in
-Django. It includes an authorization backend and several template tags for use
-in your templates. You will need to utilize this library to implement all the
-required rules.
+.. code-block:: python
 
+    import rules
+    from rules.contrib.models import RulesModel
 
-Permissions in models
-+++++++++++++++++++++
+    class Book(RulesModel):
+        title = models.CharField(max_length=100)
+        author = models.CharField(max_length=100)
 
-It is common to have a set of permissions for a model, similar to what Django
-provides with its default model permissions (such as *add*, *change*, etc.).
-When using ``rules`` as the permission checking backend, you can declare
-object-level permissions for any model in a similar manner, using a new
-``Meta`` option.
+        class Meta:
+            rules_permissions = {
+                "create": rules.is_staff,
+                "retrieve": rules.is_authenticated,
+            }
 
-To integrate the rules library with your Django models, you'll need to switch
-your model's base class and metaclass to the extended versions provided in
-``rules.contrib.models``. The extensions are lightweight and only augment the
-models by registering permissions. They do not create any migrations for your
-models.
+CRUD conventions differ slightly:
 
-The approach you take depends on whether you're using a custom base class
-and/or metaclass for your models. Here are the steps:
-
-* If you're using the stock ``django.db.models.Model`` as base for your models,
-  simply switch over to ``RulesModel`` and you're good to go.
-* If you're currently using the default ``django.db.models.Model`` as the base
-  for your models, simply switch to using ``RulesModel`` instead, and you're
-  all set.
-* If you already have a custom base class that adds common functionality to
-  your models, you can integrate ``RulesModelMixin`` and set ``RulesModelBase``
-  as the metaclass. Here's how you can do it:
-
-    .. code-block:: python
-
-        from django.db.models import Model
-        from rules.contrib.models import RulesModelBase, RulesModelMixin
-
-        class MyModel(RulesModelMixin, Model, metaclass=RulesModelBase):
-            ...
-
-* If you're using a custom metaclass for your models, you'll know how to
-  ensure it inherits from ``RulesModelBaseMixin``.
-
-  To create your models, assuming you are using ``RulesModel`` as the base
-  class directly, follow this example:
-
-    .. code-block:: python
-
-        import rules
-        from rules.contrib.models import RulesModel
-
-        class Book(RulesModel):
-            class Meta:
-                rules_permissions = {
-                    "create": rules.is_staff,
-                    "retrieve": rules.is_authenticated,
-                }
-
-  The ``RulesModelMixin`` includes methods that you can override to customize
-  how a model's permissions are registered. For more details, refer to the
-  `django-rules <https://github.com/dfunckt/django-rules>`_ documentation.
-
-
-**NOTE:** The keys of ``rules_permissions`` differ from Django's default name
-conventions (which are also used by ``django-rules``). Instead, we adopt the
-Django Rest Framework (DRF) conventions. Below is a table showing the default
-CRUD keys for both conventions:
-
-.. list-table:: CRUD key Conventions
+.. list-table:: CRUD Conventions
    :header-rows: 1
 
-   * - action
+   * - Action
      - django-rules
      - drf-rules
    * - Create
@@ -233,7 +163,7 @@ CRUD keys for both conventions:
      - retrieve
    * - Update
      - change
-     - update/partial_update
+     - update / partial_update
    * - Delete
      - delete
      - destroy
@@ -241,88 +171,72 @@ CRUD keys for both conventions:
      - view
      - list
 
-As demonstrated, the keys in `drf-rules` can distinguish directly between
-various types of update actions, such as `update` and `partial_update`.
-Additionally, they can differentiate between `list` and `retrieve` actions.
-This is because `drf-rules` is designed to align with Django Rest Framework
-(DRF) conventions, enabling it to operate seamlessly with DRF actions.
 
-Another advantage of using this approach is that it facilitates an automatic
-association between rules and Django Rest Framework (DRF) actions. As we will
-see later, this allows for the seamless integration of `drf-rules` as
-permissions in views.
+View Permissions
+................
 
-
-Permissions in views
-++++++++++++++++++++
-
-This marks the first instance where we utilize ``drf-rules``. You can
-configure the ``permission_classes`` attribute for a view or viewset by using
-the ``ModelViewSet`` class-based views:
+Use ``AutoRulesPermission`` with your DRF views:
 
 .. code-block:: python
 
-  from rest_framework.decorators import action
-  from rest_framework.viewsets import ModelViewSet
+    from rest_framework.viewsets import ModelViewSet
+    from drf_rules.permissions import AutoRulesPermission
 
-  from drf_rules.permissions import AutoRulesPermission
+    class BookViewSet(ModelViewSet):
+        queryset = Book.objects.all()
+        serializer_class = BookSerializer
+        permission_classes = [AutoRulesPermission]
 
-
-  class BookViewSet(ModelViewSet):
-      queryset = Book.objects.all()
-      serializer_class = BookSerializer
-      permission_classes = [AutoRulesPermission]
-
-      @action(detail=False)
-      def custom_nodetail(self, request):
-          return Response({'status': 'request was permitted'})
-
-This defines permissions based on ``rules_permissions`` specified in the model.
-To set permissions for custom actions, you can modify ``rules_permissions``.
-For example, you can do this:
-
+You can also define rules for **custom actions**:
 
 .. code-block:: python
 
-  import rules
-  from rules.contrib.models import RulesModel
+    class Book(RulesModel):
+        title = models.CharField(max_length=100)
+        author = models.CharField(max_length=100)
 
-  class Book(RulesModel):
-      class Meta:
-          rules_permissions = {
-              "create": rules.is_staff,
-              "retrieve": rules.is_authenticated,
-              "custom_nodetail": rules.is_authenticated,
-          }
+        class Meta:
+            rules_permissions = {
+                "create": rules.is_staff,
+                "retrieve": rules.is_authenticated,
+                "custom_nodetail": rules.is_authenticated,
+                ":default:": rules.is_authenticated,
+            }
 
-With this configuration, the ``custom_nodetail`` action will be allowed only
-to authenticated users. Note that the ``list``, ``update``, ``partial_update``
-and ``destroy`` actions are not explicitly defined. Therefore, the
-``:default:`` rule will be applied. However, since the ``:default:`` rule is
-not defined, these actions will not be allowed at all. The ``:default:`` rule
-is applicable only to conventional actions, such as ``list``, ``retrieve``,
-``create``, ``update``, ``partial_update``, and ``destroy``. To ensure that
-the ``:default:`` rule applies to all conventional actions that are not
-explicitly defined, you can define it accordingly:
+- The ``:default:`` rule applies to all **conventional** actions
+  (``list``, ``retrieve``, ``create``, ``update``, ``partial_update``,
+  ``destroy``) not explicitly defined.
+- Non-standard actions (e.g. ``custom_nodetail``) must be defined explicitly.
+
+
+Custom User Integration
+.......................
+
+If you are using a **custom User model** or any other custom model, you can
+integrate ``drf-rules`` by combining ``RulesModelMixin`` with the
+``RulesModelBase`` metaclass.  This ensures that permissions are automatically
+registered on the model.
 
 .. code-block:: python
 
-  import rules
-  from rules.contrib.models import RulesModel
+    from django.contrib.auth.models import AbstractUser
+    from rules.contrib.models import RulesModelMixin, RulesModelBase
 
-  class Book(RulesModel):
-      class Meta:
-          rules_permissions = {
-              "create": rules.is_staff,
-              "retrieve": rules.is_authenticated,
-              ":default:": rules.is_authenticated,
-          }
+    class CustomUser(AbstractUser, RulesModelMixin, metaclass=RulesModelBase):
+        """
+        Example custom user integrated with drf-rules.
+        You can define CRUD permissions here via Meta.rules_permissions.
+        """
+        class Meta:
+            rules_permissions = {
+                "create": rules.is_staff,
+                "retrieve": rules.is_authenticated,
+                ":default:": rules.is_authenticated,
+            }
 
-In this case, if ``custom_nodetail`` rule is not explicitly defined,
-``custom_nodetail`` action will not be allowed, even if the ``:default:`` is
-specified. This is because ``custom_nodetail`` is not a conventional action.
-However, the ``:default:`` rule will apply to the ``list``, ``update``,
-``partial_update``, and ``destroy`` actions.
+If you already use a **custom metaclass** for your user model (or any other
+model), make sure it **inherits from ``RulesModelBase``** so that
+``drf-rules`` can register permissions correctly.
 
 
 License

@@ -72,5 +72,10 @@ tests = ["tests", "*/drf-rules/tests"]
 [tool.coverage.report]
 exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
 
+[dependency-groups]
+dev = [
+    "coverage>=7.6.1",
+]
+
 [tool.hatch.envs.test]
 dependencies = ["pytest"]
