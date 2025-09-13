@@ -75,6 +75,7 @@ exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
 [dependency-groups]
 dev = [
     "coverage>=7.6.1",
+    "hatchling>=1.27.0",
 ]
 
 [tool.hatch.envs.test]

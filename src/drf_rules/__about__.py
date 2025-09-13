@@ -8,4 +8,4 @@ __author__ = "Luis Saavedra"
 __email__ = "luis94855510@gmail.com"
 __license__ = "BSD-3-Clause"
 __version__: str
-__version__ = "0.0.7"
+__version__ = "0.0.6"
