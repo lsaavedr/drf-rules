@@ -1,7 +1,7 @@
-import rules
+from rules.predicates import predicate
 
 
-@rules.predicate
+@predicate
 def is_adult_cat(user, cat=None):
     if cat is None:
         return True

@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 
-import rules
+from rules.predicates import always_true, is_staff
 from rules.contrib.models import RulesModel
 
 from django.db import models
@@ -20,13 +20,13 @@ class Cat(RulesModel):
 
     class Meta:
         rules_permissions = {
-            "post": rules.always_true,
-            "create": rules.always_true,
-            "retrieve": rules.always_true,
-            "destroy": rules.is_staff,
-            "partial_update": rules.always_true,
-            "custom_detail": rules.always_true,
-            "custom_nodetail": rules.always_true,
+            "post": always_true,
+            "create": always_true,
+            "retrieve": always_true,
+            "destroy": is_staff,
+            "partial_update": always_true,
+            "custom_detail": always_true,
+            "custom_nodetail": always_true,
             ":default:": is_adult_cat,
         }
 
@@ -41,9 +41,9 @@ class Dog(RulesModel):
 
     class Meta:
         rules_permissions = {
-            "create": rules.always_true,
-            "retrieve": rules.always_true,
-            "destroy": rules.is_staff,
+            "create": always_true,
+            "retrieve": always_true,
+            "destroy": is_staff,
         }
 
     def __str__(self) -> str:

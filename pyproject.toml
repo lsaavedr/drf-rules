@@ -60,6 +60,15 @@ extend_skip = ['migrations', '__pycache__']
 known_django = ['django', 'rest_framework', 'drf_spectacular']
 sections = ['FUTURE', 'STDLIB', 'THIRDPARTY', 'DJANGO', 'FIRSTPARTY', 'LOCALFOLDER']
 
+[tool.mypy]
+plugins = ["mypy_django_plugin.main", "mypy_drf_plugin.main"]
+
+[tool.pyright]
+include = ["src"]
+stubPath = "typings"
+reportMissingTypeStubs = true
+reportOptionalMemberAccess = true
+
 [tool.coverage.run]
 source_pkgs = ["drf_rules"]
 branch = true
@@ -75,7 +84,12 @@ exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
 [dependency-groups]
 dev = [
     "coverage>=7.6.1",
+    "django-stubs[compatible-mypy]>=5.1.3",
+    "djangorestframework-stubs[compatible-mypy]>=1.4.0",
     "hatchling>=1.27.0",
+    "isort>=5.13.2",
+    "pyright>=1.1.405",
+    "ruff>=0.13.0",
 ]
 
 [tool.hatch.envs.test]

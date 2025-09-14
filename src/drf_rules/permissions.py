@@ -2,21 +2,19 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 import logging
-from typing import List
+from typing import TYPE_CHECKING, List, cast
 
 from rules.contrib.models import RulesModel
 from rules.permissions import perm_exists
 
+from django.contrib.auth.models import User
 from django.core.exceptions import ImproperlyConfigured
-from django.db.models import QuerySet
+from django.db.models import Manager, QuerySet
 from django.http import HttpRequest
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import BasePermission
 
 logger: logging.Logger = logging.getLogger("drf-rules")
-error_message: str = (
-    "Permission {} not found, please add it to rules_permissions!"
-)
 
 crud_method_names: List[str] = [
     "list",
@@ -26,6 +24,7 @@ crud_method_names: List[str] = [
     "partial_update",
     "destroy",
 ]
+error_message: str = "Permission {} not found, please add it to rules_permissions!"
 
 
 class AutoRulesPermission(BasePermission):
@@ -73,32 +72,26 @@ class AutoRulesPermission(BasePermission):
     ``get_from_name`` is added.
     """
 
-    def _queryset(self, view: GenericAPIView) -> QuerySet:
-        if (
-            not hasattr(view, "get_queryset")
-            and getattr(view, "queryset", None) is None
-        ):
-            message = (
-                f"Cannot apply {self.__class__.__name__} on a view that does"
-                "not set `.queryset` and not have a `.get_queryset()` method."
-            )
-            logger.warning(message)
-            raise ImproperlyConfigured(message)
+    def _queryset(self, view: GenericAPIView) -> QuerySet | Manager:
+        queryset_from_get = getattr(view, "get_queryset", lambda: None)()
+        queryset = getattr(view, "queryset", None)
 
-        if hasattr(view, "get_queryset"):
-            queryset = view.get_queryset()
-            assert (
-                queryset is not None
-            ), "{}.get_queryset() returned None".format(
-                view.__class__.__name__
-            )
+        if queryset_from_get is not None or queryset is not None:
+            if queryset_from_get is not None:
+                return view.get_queryset()
 
-            return queryset
+            return cast(QuerySet | Manager, view.queryset)
 
-        return view.queryset
+        message = (
+            f"Cannot apply {self.__class__.__name__} on a view that does"
+            "not set `.queryset` and not have a `.get_queryset()` method."
+        )
+        logger.warning(message)
+        raise ImproperlyConfigured(message)
 
     def _method_name(self, request: HttpRequest, view: GenericAPIView) -> str:
-        return getattr(view, "action", request.method.lower())
+        method = request.method.lower() if request.method else ""
+        return getattr(view, "action", method)
 
     def _permission(self, method_name: str, view: GenericAPIView):
         """
@@ -106,12 +99,15 @@ class AutoRulesPermission(BasePermission):
         """
 
         queryset = self._queryset(view)
-        model_cls: RulesModel = queryset.model
+        model_cls: RulesModel = cast(RulesModel, queryset.model)
 
         return model_cls.get_perm(method_name)
 
     def has_permission(self, request: HttpRequest, view: GenericAPIView):
         user = request.user
+        if TYPE_CHECKING:
+            user = cast(User, user)
+
         method_name = self._method_name(request, view)
         perm = self._permission(method_name, view)
 
@@ -127,10 +123,11 @@ class AutoRulesPermission(BasePermission):
 
         return user.has_perm(perm)
 
-    def has_object_permission(
-        self, request: HttpRequest, view: GenericAPIView, obj
-    ):
+    def has_object_permission(self, request: HttpRequest, view: GenericAPIView, obj):
         user = request.user
+        if TYPE_CHECKING:
+            user = cast(User, user)
+
         method_name = self._method_name(request, view)
         perm = self._permission(method_name, view)
 
