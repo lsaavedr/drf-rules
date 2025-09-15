@@ -1,9 +1,7 @@
 # SPDX-FileCopyrightText: 2024-present Luis Saavedra <luis94855510@gmail.com>
 #
 # SPDX-License-Identifier: BSD-3-Clause
-from typing import List
-
-from testapp.models import Cat, Dog, Gender
+from typing import List, cast
 
 from django.core.exceptions import ImproperlyConfigured
 from django.urls import URLPattern, path
@@ -24,6 +22,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from drf_rules.permissions import AutoRulesPermission
+from testapp.models import Cat, Dog, Gender
 
 
 class AutoPermissionRequiredMixinTests(APITestCase, URLPatternsTestCase):
@@ -90,7 +89,7 @@ class AutoPermissionRequiredMixinTests(APITestCase, URLPatternsTestCase):
         router = SimpleRouter()
         router.register("cats", CatViewSet)
         router.register("dogs", DogViewSet)
-        cls.urlpatterns = router.get_urls()
+        cls.urlpatterns = cast(List[URLPattern], router.get_urls())
 
         cls.urlpatterns += [
             path(

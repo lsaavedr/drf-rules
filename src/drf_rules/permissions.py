@@ -2,17 +2,17 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 import logging
+
 from typing import TYPE_CHECKING, List, cast
 
-from rules.contrib.models import RulesModel
-from rules.permissions import perm_exists
-
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models import Manager, QuerySet
 from django.http import HttpRequest
-from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import BasePermission
+from rest_framework.views import APIView
+from rules.contrib.models import RulesModel
+from rules.permissions import perm_exists
 
 logger: logging.Logger = logging.getLogger("drf-rules")
 
@@ -24,13 +24,15 @@ crud_method_names: List[str] = [
     "partial_update",
     "destroy",
 ]
-error_message: str = "Permission {} not found, please add it to rules_permissions!"
+error_message: str = (
+    "Permission {} not found, please add it to rules_permissions!"
+)
 
 
 class AutoRulesPermission(BasePermission):
     """
     This permission class enforces object-level permissions in
-    ``rest_framework.generics.GenericAPIView``, determining the permission type
+    ``rest_framework.views.APIView``, determining the permission type
     based on the specific Django Rest Framework (DRF) action to be performed.
 
     Similar to ``rules.contrib.views.AutoPermissionRequiredMixin``, this
@@ -72,15 +74,15 @@ class AutoRulesPermission(BasePermission):
     ``get_from_name`` is added.
     """
 
-    def _queryset(self, view: GenericAPIView) -> QuerySet | Manager:
+    def _queryset(self, view: APIView) -> QuerySet | Manager:
         queryset_from_get = getattr(view, "get_queryset", lambda: None)()
         queryset = getattr(view, "queryset", None)
 
         if queryset_from_get is not None or queryset is not None:
             if queryset_from_get is not None:
-                return view.get_queryset()
+                return cast(QuerySet | Manager, queryset_from_get)
 
-            return cast(QuerySet | Manager, view.queryset)
+            return cast(QuerySet | Manager, queryset)
 
         message = (
             f"Cannot apply {self.__class__.__name__} on a view that does"
@@ -89,11 +91,11 @@ class AutoRulesPermission(BasePermission):
         logger.warning(message)
         raise ImproperlyConfigured(message)
 
-    def _method_name(self, request: HttpRequest, view: GenericAPIView) -> str:
+    def _method_name(self, request: HttpRequest, view: APIView) -> str:
         method = request.method.lower() if request.method else ""
         return getattr(view, "action", method)
 
-    def _permission(self, method_name: str, view: GenericAPIView):
+    def _permission(self, method_name: str, view: APIView):
         """
         Get permission from action method name
         """
@@ -103,10 +105,10 @@ class AutoRulesPermission(BasePermission):
 
         return model_cls.get_perm(method_name)
 
-    def has_permission(self, request: HttpRequest, view: GenericAPIView):
+    def has_permission(self, request: HttpRequest, view: APIView):
         user = request.user
         if TYPE_CHECKING:
-            user = cast(User, user)
+            user = cast(AbstractUser, user)
 
         method_name = self._method_name(request, view)
         perm = self._permission(method_name, view)
@@ -123,10 +125,10 @@ class AutoRulesPermission(BasePermission):
 
         return user.has_perm(perm)
 
-    def has_object_permission(self, request: HttpRequest, view: GenericAPIView, obj):
+    def has_object_permission(self, request: HttpRequest, view: APIView, obj):
         user = request.user
         if TYPE_CHECKING:
-            user = cast(User, user)
+            user = cast(AbstractUser, user)
 
         method_name = self._method_name(request, view)
         perm = self._permission(method_name, view)

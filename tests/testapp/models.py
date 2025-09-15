@@ -1,9 +1,8 @@
 from __future__ import absolute_import
 
-from rules.predicates import always_true, is_staff
-from rules.contrib.models import RulesModel
-
 from django.db import models
+from rules.contrib.models import RulesModel
+from rules.predicates import always_true, is_staff
 
 from .rules import is_adult_cat
 
