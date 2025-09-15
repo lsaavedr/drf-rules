@@ -17,7 +17,7 @@ class Cat(RulesModel):
     age = models.IntegerField()
     gender = models.CharField(max_length=6, choices=Gender.choices)
 
-    class Meta:
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
         rules_permissions = {
             "post": always_true,
             "create": always_true,
@@ -38,7 +38,7 @@ class Dog(RulesModel):
     age = models.IntegerField()
     gender = models.CharField(max_length=6, choices=Gender.choices)
 
-    class Meta:
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
         rules_permissions = {
             "create": always_true,
             "retrieve": always_true,
