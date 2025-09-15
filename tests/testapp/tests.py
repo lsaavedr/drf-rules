@@ -22,21 +22,22 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from drf_rules.permissions import AutoRulesPermission
-from testapp.models import Cat, Dog, Gender
+
+from .models import Cat, Dog, Gender
 
 
-class AutoPermissionRequiredMixinTests(APITestCase, URLPatternsTestCase):
+class AutoPermissionRequiredMixinTests(APITestCase, URLPatternsTestCase):  # type: ignore[reportIncompatibleVariableOverride]
     urlpatterns: List[URLPattern] = []
 
     @classmethod
     def setUpClass(cls):
         class CatSerializer(ModelSerializer):
-            class Meta:
+            class Meta:  # type: ignore[reportIncompatibleVariableOverride]
                 model = Cat
                 fields = "__all__"
 
         class DogSerializer(ModelSerializer):
-            class Meta:
+            class Meta:  # type: ignore[reportIncompatibleVariableOverride]
                 model = Dog
                 fields = "__all__"
 
