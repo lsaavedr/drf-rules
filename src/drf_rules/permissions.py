@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 import logging
 
-from typing import TYPE_CHECKING, List, cast
+from typing import TYPE_CHECKING, List, Union, cast
 
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ImproperlyConfigured
@@ -74,15 +74,15 @@ class AutoRulesPermission(BasePermission):
     ``get_from_name`` is added.
     """
 
-    def _queryset(self, view: APIView) -> QuerySet | Manager:
+    def _queryset(self, view: APIView) -> Union[QuerySet, Manager]:
         queryset_from_get = getattr(view, "get_queryset", lambda: None)()
         queryset = getattr(view, "queryset", None)
 
         if queryset_from_get is not None or queryset is not None:
             if queryset_from_get is not None:
-                return cast(QuerySet | Manager, queryset_from_get)
+                return cast(Union[QuerySet, Manager], queryset_from_get)
 
-            return cast(QuerySet | Manager, queryset)
+            return cast(Union[QuerySet, Manager], queryset)
 
         message = (
             f"Cannot apply {self.__class__.__name__} on a view that does"

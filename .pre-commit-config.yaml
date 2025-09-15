@@ -13,8 +13,11 @@ repos:
   hooks:
     - id: ruff-check
     - id: ruff-format
-- repo: https://github.com/RobertCraigie/pyright-python
-  rev: v1.1.405
+- repo: local
   hooks:
     - id: pyright
+      name: Pyright (Type Checking)
+      entry: uv run pyright
       language: system
+      types: [python]
+      always_run: true
